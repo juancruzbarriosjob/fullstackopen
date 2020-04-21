@@ -20,7 +20,6 @@ const Countries = ({countries}) => {
     <div>
       {countries.map((country) => 
         <div key={country.cioc}>
-          {country.name} 
           <Country country={country} show={false} />
         </div>
       )}

@@ -10,7 +10,7 @@ const Country = ({country, show}) => {
 
   return (
     <div>
-      <button onClick={handleShowCountry}>Show</button>
+      {country.name} <button onClick={handleShowCountry}>Show</button>
       <CountryInfo country={country} show={showCountry} />
     </div>
   )
