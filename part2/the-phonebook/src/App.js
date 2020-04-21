@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react'
-import axios from 'axios'
 import Filter from './components/Filter'
 import Persons from './components/Persons'
 import PersonForm from './components/PersonForm'
+import personsService from './services/personsService'
+
+const messageAlreadyExists = 'is already added to phonebook, replace the old number with a new one'
 
 const App = () => {
   const [persons, setPersons] = useState([])
@@ -10,12 +12,14 @@ const App = () => {
   const [newNumber, setNewNumber] = useState('')
   const [filterPerson, setFilterPerson] = useState('')
 
-  const personsToShow = filterPerson === '' ? persons : persons.filter(person => person.name.includes(filterPerson))
+  const personsToShow = filterPerson === '' 
+    ? persons 
+    : persons.filter(person => person.name.includes(filterPerson))
 
   useEffect(() => {
-    axios
-      .get('http://localhost:3001/persons')
-      .then(response => setPersons(response.data))
+    personsService
+      .getAll()
+      .then(returnedPersons => setPersons(returnedPersons))
   }, [])
 
   const addNumber = (event) => {
@@ -25,17 +29,32 @@ const App = () => {
       return persons.some((person) => person.name === newName)
     }
 
-    if (!personExists()) {
-      const numberObject = {
-        name: newName,
-        number: newNumber
-      }
+    const newPerson = {
+      name: newName,
+      number: newNumber
+    }
 
-      setPersons(persons.concat(numberObject))
-      setNewName('')
-      setNewNumber('')
+    if (!personExists()) {
+      personsService
+        .add(newPerson)
+          .then(returnedPerson => {
+            setPersons(persons.concat(returnedPerson))
+            setNewName('')
+            setNewNumber('')
+          })
     } else {
-      window.alert(`${newName} is already added to phonebook`);
+      if (window.confirm(`${newName} ${messageAlreadyExists}`)) {
+        const personUpdated = persons.filter(person => person.name === newName)[0]
+        personsService
+          .update(personUpdated.id, newPerson)
+          .then(returnedPerson => {
+            setPersons(persons.map((person) => {
+              return person.id !== personUpdated.id
+                ? person
+                : returnedPerson
+            }))
+          })
+      }
     }
   }
 
@@ -57,7 +76,7 @@ const App = () => {
         eventHandlerNumber={handleNumberChange}/>
   
       <h2>Numbers</h2>
-      <Persons persons={personsToShow} />
+      <Persons persons={personsToShow} setPersons={setPersons} />
     </div>
   )
 }
