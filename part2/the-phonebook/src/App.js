@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import Filter from './components/Filter'
 import Persons from './components/Persons'
 import PersonForm from './components/PersonForm'
+import Notification from './components/Notification'
 import personsService from './services/personsService'
 
 const messageAlreadyExists = 'is already added to phonebook, replace the old number with a new one'
@@ -11,6 +12,8 @@ const App = () => {
   const [newName, setNewName] = useState('')
   const [newNumber, setNewNumber] = useState('')
   const [filterPerson, setFilterPerson] = useState('')
+  const [notificationMessage, setNotificationMessage] = useState('')
+  const [error, setError] = useState(false)
 
   const personsToShow = filterPerson === '' 
     ? persons 
@@ -41,6 +44,8 @@ const App = () => {
             setPersons(persons.concat(returnedPerson))
             setNewName('')
             setNewNumber('')
+            setNotificationMessage(`Added ${returnedPerson.name}`)
+            setError(false);
           })
     } else {
       if (window.confirm(`${newName} ${messageAlreadyExists}`)) {
@@ -65,6 +70,7 @@ const App = () => {
   return (
     <div>
       <h2>Phonebook</h2>
+      <Notification message={notificationMessage} error={error} />
       <Filter filterPerson={filterPerson} eventHandler={handleFilterPersonChange} />
       
       <h2>Add a new</h2>
@@ -76,7 +82,11 @@ const App = () => {
         eventHandlerNumber={handleNumberChange}/>
   
       <h2>Numbers</h2>
-      <Persons persons={personsToShow} setPersons={setPersons} />
+      <Persons 
+        persons={personsToShow} 
+        setPersons={setPersons} 
+        setNotificationMessage={setNotificationMessage} 
+        setError={setError} />
     </div>
   )
 }
